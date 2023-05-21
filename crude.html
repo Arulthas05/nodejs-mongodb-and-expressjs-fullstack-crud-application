@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+
+    <title>Crude</title>
+    <style>
+      fieldset {
+        width: 20%;
+        border: 2px solid black;
+        border-radius: 20px;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+
+      table {
+        width: 90%;
+        margin: 3% 5% 0% 5%;
+      }
+
+      fieldset {
+        margin: auto;
+      }
+
+      .A {
+        margin-left: 10px;
+        padding: 10px;
+      }
+
+      input {
+        padding: 5px;
+        width: 90%;
+      }
+
+      label {
+        font-size: 20px;
+      }
+
+      button {
+        margin: 0px 1px 0px 1px;
+        padding: 5px;
+        width: 83.5%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container mt-5">
+      <div class="text-center">
+        <h1 class="display-5 mb-5"><strong>Bio students marks</strong></h1>
+      </div>
+    </div>
+
+    <form id="form">
+      <fieldset>
+        <div class="A">
+          <label for="StudentId">Student Id</label><br />
+          <input type="text" id="StudentId" /><br /><br />
+          <label for="StudentName">Student Name</label><br />
+          <input type="text" id="StudentName" /><br /><br />
+          <label for="ChemistryMarks">Chemistry Marks</label><br />
+          <input type="text" id="ChemistryMarks" /><br /><br />
+          <label for="PhysicsMarks">Physics Marks</label><br />
+          <input type="text" id="PhysicsMarks" /><br /><br />
+          <label for="BiologyMarks">Biology Marks</label><br />
+          <input type="text" id="BiologyMarks" /><br /><br />
+          <div>
+            <button class="dash" id="submit" type="submit">Submit</button>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Student Id</th>
+          <th>Student Name</th>
+          <th>Chemistry Marks</th>
+          <th>Physics Marks</th>
+          <th>Biology Marks</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="student"></tbody>
+    </table>
+    <script>
+      var form = document.getElementById("form");
+      var submitButton = document.getElementById("submit");
+      var postsList = document.getElementById("student");
+      var id;
+
+      submitButton.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        var StudentId = document.getElementById("StudentId").value;
+        var StudentName = document.getElementById("StudentName").value;
+        var ChemistryMarks = document.getElementById("ChemistryMarks").value;
+        var PhysicsMarks = document.getElementById("PhysicsMarks").value;
+        var BiologyMarks = document.getElementById("BiologyMarks").value;
+
+        if (!id) {
+          // If id is not present, it's a new submission
+          fetch("http://localhost:3007/post", {
+            method: "post",
+            body: JSON.stringify({
+              StudentId: StudentId,
+              StudentName: StudentName,
+              ChemistryMarks: ChemistryMarks,
+              PhysicsMarks: PhysicsMarks,
+              BiologyMarks: BiologyMarks,
+            }),
+            headers: {
+              "Content-Type": "application/json; charset=UTF-8",
+            },
+          })
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+              console.log(data);
+              // Clear input fields after successful submission
+              document.getElementById("StudentId").value = "";
+              document.getElementById("StudentName").value = "";
+              document.getElementById("ChemistryMarks").value = "";
+              document.getElementById("PhysicsMarks").value = "";
+              document.getElementById("BiologyMarks").value = "";
+              id = ""; // Reset the id variable
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        } else {
+          // If id is present, it's an update
+          fetch("http://localhost:3007/update/" + id, {
+            method: "PUT",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify({
+              StudentId: StudentId,
+              StudentName: StudentName,
+              ChemistryMarks: ChemistryMarks,
+              PhysicsMarks: PhysicsMarks,
+              BiologyMarks: BiologyMarks,
+            }),
+          })
+            .then((res) => res.json())
+            .then(function (data) {
+              console.log(data);
+              // Clear input fields after successful update
+              document.getElementById("StudentId").value = "";
+              document.getElementById("StudentName").value = "";
+              document.getElementById("ChemistryMarks").value = "";
+              document.getElementById("PhysicsMarks").value = "";
+              document.getElementById("BiologyMarks").value = "";
+              id = ""; // Reset the id variable
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        }
+      });
+
+      postsList.addEventListener("click", (e) => {
+        e.preventDefault();
+        let delButtonIsPressed = e.target.classList.contains("delete");
+        let editButtonIsPressed = e.target.classList.contains("edit");
+
+        id = e.target.parentElement.parentElement.getAttribute("data-id");
+
+        if (delButtonIsPressed && id) {
+          // Delete
+          fetch(`http://localhost:3007/del/${id}`, {
+            method: "PUT",
+          })
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+              console.log(data);
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        }
+
+        if (editButtonIsPressed && id) {
+          // Edit
+          document.getElementById("StudentId").value =
+            e.target.parentElement.parentElement.children[0].textContent;
+          document.getElementById("StudentName").value =
+            e.target.parentElement.parentElement.children[1].textContent;
+          document.getElementById("ChemistryMarks").value =
+            e.target.parentElement.parentElement.children[2].textContent;
+          document.getElementById("PhysicsMarks").value =
+            e.target.parentElement.parentElement.children[3].textContent;
+          document.getElementById("BiologyMarks").value =
+            e.target.parentElement.parentElement.children[4].textContent;
+        }
+      });
+
+      fetch("http://localhost:3007/fulldata")
+        .then(function (res) {
+          if (res.status === 200) return res.json();
+          else throw new Error("Something Failed..");
+        })
+        .then(function (data) {
+          let tableData = "";
+
+          data.map((values) => {
+            tableData += `<tr data-id="${values._id}">
+          <td class='das'>${values.StudentId}</td>
+          <td>${values.StudentName}</td>
+          <td>${values.ChemistryMarks}</td>
+          <td>${values.PhysicsMarks}</td>
+          <td>${values.BiologyMarks}</td>
+          <td data-id="${values.id}">
+            <a href="#" class="btn btn-warning btn-sm edit">Edit</a>
+            <a href="#" class="btn btn-danger btn-sm delete">Delete</a>
+          </td>
+        </tr>`;
+          });
+
+          document.getElementById("student").innerHTML = tableData;
+        })
+        .catch(function (err) {
+          console.log(err.message);
+        });
+    </script>
+  </body>
+</html>
